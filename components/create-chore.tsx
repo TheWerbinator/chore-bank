@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,25 +51,14 @@ const formSchema = z.object({
   child: z.string(),
 });
 
-const CreateChore = ({ userId }: { userId: string }) => {
+const CreateChore = ({
+  userId,
+  childrenData,
+}: {
+  userId: string;
+  childrenData: Array<{ id: string; name: string }>;
+}) => {
   const supabase = createClient();
-
-  const [children, setChildren] = useState<Array<{ id: string; name: string }>>(
-    []
-  );
-  useEffect(() => {
-    const fetchChildren = async () => {
-      const { data, error } = await supabase
-        .from("children")
-        .select("id, name");
-      if (error) {
-        console.error("Error fetching children:", error);
-      } else {
-        setChildren(data);
-      }
-    };
-    fetchChildren();
-  }, [supabase]);
   const [loading, setLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -234,7 +223,7 @@ const CreateChore = ({ userId }: { userId: string }) => {
                       <SelectTrigger id='form-child' className='w-[180px]'>
                         <SelectValue
                           placeholder={
-                            children.length === 0
+                            childrenData.length === 0
                               ? "No children created yet"
                               : "Select a child"
                           }
@@ -243,7 +232,7 @@ const CreateChore = ({ userId }: { userId: string }) => {
 
                       <SelectContent>
                         <SelectGroup>
-                          {children.map((child) => (
+                          {childrenData.map((child) => (
                             <SelectItem key={child.id} value={child.id}>
                               {child.name}
                             </SelectItem>
