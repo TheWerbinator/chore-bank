@@ -22,14 +22,14 @@ const Children = ({
         <Card key={child.id} className='w-full sm:max-w-md'>
           <CardHeader>
             <CardTitle>{child.name}</CardTitle>
-            <CardDescription>
-              All work and no play makes Jack a dull boy.
-            </CardDescription>
+            <CardDescription></CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Child ID: {child.id}</p>
-            <p>Unspent Rewards: {child.current_rewards}</p>
-            <p>Lifetime Earnings: {child.lifetime_rewards}</p>
+            <p className='text-sm'>Child ID: {child.id}</p>
+            <p className='text-sm'>Unspent Rewards: {child.current_rewards}</p>
+            <p className='text-sm'>
+              Lifetime Earnings: {child.lifetime_rewards}
+            </p>
           </CardContent>
         </Card>
       ))}
