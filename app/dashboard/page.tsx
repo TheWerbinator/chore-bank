@@ -5,6 +5,7 @@ import { InfoIcon } from "lucide-react";
 // import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import CreateChore from "@/components/create-chore";
 import AddChild from "@/components/add-child";
+import Children from "@/components/children";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export default async function ProtectedPage() {
 
   const { data, error: childrenError } = await supabase
     .from("children")
-    .select("id, name");
+    .select("id, name, current_rewards, lifetime_rewards");
   if (childrenError) {
     console.error("Error fetching children:", childrenError);
     return [];
@@ -31,6 +32,9 @@ export default async function ProtectedPage() {
             user
           </div>
         </div>
+
+        <h2 className='font-bold text-lg mb-4'>Children</h2>
+        <Children childrenData={data} />
         <div className='flex flex-wrap gap-4'>
           <CreateChore userId={claimsData.claims.sub} childrenData={data} />
           <AddChild userId={claimsData.claims.sub} />
