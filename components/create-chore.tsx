@@ -1,6 +1,9 @@
 "use client";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +28,15 @@ import {
   InputGroupText,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { toast } from "sonner";
-import * as z from "zod";
 
 const formSchema = z.object({
   title: z
@@ -38,18 +48,67 @@ const formSchema = z.object({
     .min(20, "Description must be at least 20 characters.")
     .max(100, "Description must be at most 100 characters."),
   reward: z.number(),
+  child: z.string(),
 });
 
-const CreateChore = () => {
+const CreateChore = ({ userId }: { userId: string }) => {
+  const supabase = createClient();
+
+  const [children, setChildren] = useState<Array<{ id: string; name: string }>>(
+    []
+  );
+  useEffect(() => {
+    const fetchChildren = async () => {
+      const { data, error } = await supabase
+        .from("children")
+        .select("id, name");
+      if (error) {
+        console.error("Error fetching children:", error);
+      } else {
+        setChildren(data);
+      }
+    };
+    fetchChildren();
+  }, [supabase]);
+  const [loading, setLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
       reward: 0,
+      child: "",
     },
   });
-  function onSubmit(data: z.infer<typeof formSchema>) {
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log("Submitting data:", { ...data, userId });
+    setLoading(true);
+    const { data: supabaseData, error } = await supabase
+      .from("chores")
+      .insert({
+        title: data.title,
+        description: data.description,
+        reward: data.reward,
+        assigned_child: data.child,
+        parent: userId,
+      })
+      .select();
+    if (error) {
+      console.log(supabaseData, error);
+      toast("Failed to create child", {
+        description: error.message,
+        position: "bottom-right",
+        classNames: {
+          content: "flex flex-col gap-2",
+        },
+        style: {
+          "--border-radius": "calc(var(--radius)  + 4px)",
+        } as React.CSSProperties,
+      });
+      setLoading(false);
+      return;
+    }
     toast("You submitted the following values:", {
       description: (
         <pre className='bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4'>
@@ -64,7 +123,8 @@ const CreateChore = () => {
         "--border-radius": "calc(var(--radius)  + 4px)",
       } as React.CSSProperties,
     });
-  }
+    setLoading(false);
+  };
   return (
     <div className='max-w-4xl'>
       <Card className='w-full sm:max-w-md'>
@@ -157,6 +217,46 @@ const CreateChore = () => {
                   </Field>
                 )}
               />
+              <Controller
+                name='child'
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor='form-child'>Assigned Child</FieldLabel>
+                    <FieldDescription>
+                      Select the child to assign this chore to.
+                    </FieldDescription>
+                    <Select
+                      {...field}
+                      onValueChange={(val) => field.onChange(val)}
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectTrigger id='form-child' className='w-[180px]'>
+                        <SelectValue
+                          placeholder={
+                            children.length === 0
+                              ? "No children created yet"
+                              : "Select a child"
+                          }
+                        />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {children.map((child) => (
+                            <SelectItem key={child.id} value={child.id}>
+                              {child.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
             </FieldGroup>
           </form>
         </CardContent>
@@ -169,8 +269,8 @@ const CreateChore = () => {
             >
               Reset
             </Button>
-            <Button type='submit' form='form-create-chore'>
-              Submit
+            <Button type='submit' form='form-create-chore' disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
             </Button>
           </Field>
         </CardFooter>
