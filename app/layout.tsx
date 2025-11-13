@@ -3,14 +3,11 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  metadataBase: new URL("https://chorebank.vercel.app"),
+  title: "Easy Chore Tracker for Parents and Kids | ChoreBank",
+  description:
+    "Simplify family chores and rewards with ChoreBank. Parents can easily assign tasks and kids can earn rewards, making household management fun and engaging for everyone.",
 };
 
 const geistSans = Geist({
@@ -25,11 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
+          attribute='class'
+          defaultTheme='system'
           enableSystem
           disableTransitionOnChange
         >
